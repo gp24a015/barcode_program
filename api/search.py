@@ -1,16 +1,120 @@
+import os
+import json
+import sys
+from urllib.request import urlopen
+from urllib.error import URLError
 from http.server import BaseHTTPRequestHandler
+
+APPID = os.environ["APPID"]
+
+
+def jancode_to_name(code):
+
+    url = (
+        "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch"
+        f"?appid={APPID}&jan_code={code}&results=1"
+    )
+
+    try:
+        with urlopen(url) as resp:
+            res = json.load(resp)
+
+    except URLError as err:
+        print(err, file=sys.stderr)
+        return None
+
+    if "hits" in res and res["hits"]:
+        return res["hits"][0]["name"]
+
+    return None
 
 
 class handler(BaseHTTPRequestHandler):
 
-    def do_GET(self):
+    def do_POST(self):
+
+        content_length = int(
+            self.headers.get("Content-Length", 0)
+        )
+
+        body = self.rfile.read(content_length)
+
+        try:
+            data = json.loads(body)
+
+        except json.JSONDecodeError:
+
+            self.send_response(400)
+            self.send_header(
+                "Content-Type",
+                "application/json; charset=utf-8"
+            )
+            self.end_headers()
+
+            self.wfile.write(
+                json.dumps(
+                    {"error": "JSONの形式が正しくありません"},
+                    ensure_ascii=False
+                ).encode("utf-8")
+            )
+
+            return
+
+        barcode = data.get("barcode")
+
+        if not barcode:
+
+            self.send_response(400)
+            self.send_header(
+                "Content-Type",
+                "application/json; charset=utf-8"
+            )
+            self.end_headers()
+
+            self.wfile.write(
+                json.dumps(
+                    {"error": "JANコードがありません"},
+                    ensure_ascii=False
+                ).encode("utf-8")
+            )
+
+            return
+
+        product_name = jancode_to_name(barcode)
+
+        if product_name is None:
+
+            self.send_response(404)
+            self.send_header(
+                "Content-Type",
+                "application/json; charset=utf-8"
+            )
+            self.end_headers()
+
+            self.wfile.write(
+                json.dumps(
+                    {"error": "商品が見つかりません"},
+                    ensure_ascii=False
+                ).encode("utf-8")
+            )
+
+            return
+
         self.send_response(200)
         self.send_header(
-            "Content-type",
-            "text/plain; charset=utf-8"
+            "Content-Type",
+            "application/json; charset=utf-8"
         )
         self.end_headers()
 
+        response = {
+            "barcode": barcode,
+            "product_name": product_name
+        }
+
         self.wfile.write(
-            "APIは正常に動作しています".encode("utf-8")
+            json.dumps(
+                response,
+                ensure_ascii=False
+            ).encode("utf-8")
         )
