@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="shortcut icon" href="./images/favicon.ico">
+
+    <title>バーコード商品検索</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+
+    <div id="my_container">
+
+        <div id="my_inner">
+
+            <div>バーコード商品検索</div>
+
+            <div>
+                <button id="my_start">Start</button>
+                <button id="my_stop">Stop</button>
+            </div>
+
+            <!-- カメラ -->
+            <div id="my_quagga"></div>
+
+            <!-- 読み取ったJANコード -->
+            <div>
+                バーコード：
+                <span id="my_result">***</span>
+            </div>
+
+            <!-- バーコード画像 -->
+            <div id="my_barcode">
+                <div>***</div>
+            </div>
+
+            <!-- 商品名 -->
+            <div>
+                商品名：
+                <span id="product_name">***</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- JavaScript -->
+    <script src="//code.jquery.com/jquery-3.6.1.min.js"></script>
+
+    <script src="//unpkg.com/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
+
+    <script src="//cdn.jsdelivr.net/gh/mtaketani113/jquery-barcode@master/jquery-barcode.js"></script>
+
+    <script src="./main.js"></script>
+
+</body>
+
+</html>
