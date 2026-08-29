@@ -1,5 +1,6 @@
-pandas
-scikit-learn
 joblib
+scikit-learn
+pandas
+numpy
 python-barcode
 Pillow
