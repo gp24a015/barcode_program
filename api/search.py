@@ -34,17 +34,27 @@ def jancode_to_name(code):
 
 def generate_barcode(code):
     try:
-        ean = barcode.get("ean13", code[:12], writer = ImageWriter())
-        buffer = BytesIO()
-        ean.write(buffer, options={"write_text":True})
+        ean = barcode.get(
+            "ean13",
+            code[:12],
+            writer=ImageWriter()
+        )
 
-        image_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        buffer = BytesIO()
+
+        ean.write(
+            buffer,
+            options={"write_text": True}
+        )
+
+        image_base64 = base64.b64encode(
+            buffer.getvalue()
+        ).decode("utf-8")
 
         return "data:image/png;base64," + image_base64
 
     except Exception as err:
-        print(err, file=sys.stderr)
-
+        print("バーコード生成エラー:", err, file=sys.stderr)
         return None
 
 class handler(BaseHTTPRequestHandler):
