@@ -1,6 +1,7 @@
 import os
 import json
 import sys
+import re
 from urllib.request import urlopen
 from urllib.error import URLError
 from http.server import BaseHTTPRequestHandler
@@ -8,9 +9,17 @@ import base64
 from io import BytesIO
 import barcode
 from barcode.writer import ImageWriter
+import joblib
 
 APPID = os.environ["APPID"]
 
+# 学習データ(product_classifier)の読み込み
+MODEL_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "product_classifier.pkl"
+)
+
+model = joblib.load(MODEL_PATH)
 
 def jancode_to_name(code):
 
@@ -56,6 +65,37 @@ def generate_barcode(code):
     except Exception as err:
         print("バーコード生成エラー:", err, file=sys.stderr)
         return None
+
+def classify_product_name(name):
+
+    # 商品名を空白で分割
+    words = name.split()
+    product_words = []
+
+    for word in words:
+        # 記号を除去
+        word_clean = re.sub(
+            r"[()（）\[\]【】「」『』]",
+            "",
+            word
+        )
+
+        if not word_clean:
+            continue
+
+        # 機械学習で分類
+        result = model.predict([word_clean])[0]
+
+        print(f"分類: {word_clean} -> {result}")
+
+        if result == "product":
+            product_words.append(word)
+
+    # 商品部分だけを結合
+    if product_words:
+        return " ".join(product_words)
+
+    return name
 
 class handler(BaseHTTPRequestHandler):
 
@@ -109,8 +149,10 @@ class handler(BaseHTTPRequestHandler):
             return
 
         product_name = jancode_to_name(barcode)
-
         barcode_image = generate_barcode(barcode)
+
+        if product_name is not None:
+            product_name = classify_product_name(product_name)
 
         if product_name is None:
 
