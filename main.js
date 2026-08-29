@@ -14,7 +14,8 @@ $("#my_start").click(() => {
 
     console.log("Start!!");
 
-    $("#my_quagga").show();
+    // カメラ画面を再表示
+    $("#my_quagga").css("display", "block");
 
     // 新しく読み取りを開始
     detected = false;
@@ -98,11 +99,13 @@ Quagga.onDetected(result => {
             );
         }
 
-        if (data.barcode_image){
+        if (data.barcode_image) {
             $("#my_barcode").html(
-                 `<img src="${data.barcode_image}" alt="バーコード画像">` 
+                `<img src="${data.barcode_image}" alt="バーコード画像">`
             );
-            $("#my_quagga").hide();
+
+            // カメラを完全に非表示
+            $("#my_quagga").css("display", "none");
         }
         else{
             $("#my_barcode").html(
