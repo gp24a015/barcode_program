@@ -105,6 +105,18 @@ Quagga.onDetected(result => {
 
         }
 
+        if (data.barcode_image){
+            $("#my_barcode").html(
+                 `<img src="${data.barcode_image}" alt="バーコード画像">` 
+            );
+        }
+        
+        else{
+            $("#my_barcode").html(
+                 "<div>バーコード画像を生成できませんでした</div>" 
+            );
+        }
+
     })
 
     .catch(error => {

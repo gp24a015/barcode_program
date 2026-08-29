@@ -4,6 +4,10 @@ import sys
 from urllib.request import urlopen
 from urllib.error import URLError
 from http.server import BaseHTTPRequestHandler
+import base64
+from io import BytesIO
+import barcode
+from barcode.writer import ImageWriter
 
 APPID = os.environ["APPID"]
 
@@ -28,6 +32,20 @@ def jancode_to_name(code):
 
     return None
 
+def generate_barcode(code):
+    try:
+        ean = barcode.get("ean13", code[:12], writer = ImageWriter())
+        buffer = BytesIO()
+        ean.write(buffer, options={"write_text":True})
+
+        image_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+        return "data:image/png;base64," + image_base64
+
+    except Exception as err:
+        print(err, file=sys.stderr)
+
+        return None
 
 class handler(BaseHTTPRequestHandler):
 
@@ -82,6 +100,8 @@ class handler(BaseHTTPRequestHandler):
 
         product_name = jancode_to_name(barcode)
 
+        barcode_image = generate_barcode(barcode)
+
         if product_name is None:
 
             self.send_response(404)
@@ -109,7 +129,8 @@ class handler(BaseHTTPRequestHandler):
 
         response = {
             "barcode": barcode,
-            "product_name": product_name
+            "product_name": product_name,
+            "barcode_image": barcode_image
         }
 
         self.wfile.write(
