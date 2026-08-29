@@ -14,6 +14,8 @@ $("#my_start").click(() => {
 
     console.log("Start!!");
 
+    $("#my_quagga").show();
+
     // 新しく読み取りを開始
     detected = false;
 
@@ -57,12 +59,6 @@ Quagga.onDetected(result => {
     // JANコードを表示
     $("#my_result").text(barcode);
 
-    // バーコード画像を表示
-    $("#my_barcode div").barcode(
-        barcode,
-        "ean13"
-    );
-
     // カメラを停止
     Quagga.stop();
 
@@ -92,25 +88,22 @@ Quagga.onDetected(result => {
         console.log("APIからの返答:", data);
 
         if (data.product_name) {
-
             $("#product_name").text(
                 data.product_name
             );
 
         } else {
-
             $("#product_name").text(
                 "商品が見つかりません"
             );
-
         }
 
         if (data.barcode_image){
             $("#my_barcode").html(
                  `<img src="${data.barcode_image}" alt="バーコード画像">` 
             );
+            $("#my_quagga").hide();
         }
-        
         else{
             $("#my_barcode").html(
                  "<div>バーコード画像を生成できませんでした</div>" 
