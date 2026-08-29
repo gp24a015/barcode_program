@@ -19,7 +19,10 @@ MODEL_PATH = os.path.join(
     "product_classifier.pkl"
 )
 
-model = joblib.load(MODEL_PATH)
+model_data = joblib.load(MODEL_PATH)
+
+vectorizer = model_data["vectorizer"]
+model = model_data["model"]
 
 def jancode_to_name(code):
 
@@ -70,6 +73,7 @@ def classify_product_name(name):
 
     # 商品名を空白で分割
     words = name.split()
+
     product_words = []
 
     for word in words:
@@ -83,13 +87,18 @@ def classify_product_name(name):
         if not word_clean:
             continue
 
+        # Vectorizerで数値化
+        word_vector = vectorizer.transform([word_clean])
+
         # 機械学習で分類
-        result = model.predict([word_clean])[0]
+        result = model.predict(word_vector)[0]
 
         print(f"分類: {word_clean} -> {result}")
 
-        if result == "product":
-            product_words.append(word)
+        # 商品名または味なら残す
+        if result in ["product", "flavor"]:
+            if word_clean not in product_words:
+                product_words.append(word_clean)
 
     # 商品部分だけを結合
     if product_words:
