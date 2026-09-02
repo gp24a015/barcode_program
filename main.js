@@ -81,8 +81,8 @@ function searchProduct(barcode) {
         // カメラを非表示
         // ==============================
         $("#my_quagga").css(
-            "display",
-            "none"
+            "visibility",
+            "hidden"
         );
 
     })
