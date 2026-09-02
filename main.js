@@ -5,6 +5,7 @@ $(document).ready(() => {
 });
 
 let detected = false;
+let cameraRunning = false;
 
 
 // ==============================
@@ -68,18 +69,21 @@ function searchProduct(barcode) {
                 `<img src="${data.barcode_image}" alt="バーコード画像">`
             );
 
-            // 商品検索後はカメラを非表示
-            $("#my_quagga").css(
-                "display",
-                "none"
-            );
-
         } else {
 
             $("#my_barcode").html(
                 "<div>バーコード画像を生成できませんでした</div>"
             );
         }
+
+
+        // ==============================
+        // カメラを非表示
+        // ==============================
+        $("#my_quagga").css(
+            "display",
+            "none"
+        );
 
     })
     .catch(error => {
@@ -100,6 +104,14 @@ function searchProduct(barcode) {
 $("#my_start").click(() => {
 
     console.log("Start!!");
+
+    // すでにカメラが起動している場合
+    if (cameraRunning) {
+
+        console.log("カメラはすでに起動しています");
+
+        return;
+    }
 
     // カメラ画面を再表示
     $("#my_quagga").css(
@@ -145,6 +157,8 @@ $("#my_start").click(() => {
                 err
             );
 
+            cameraRunning = false;
+
             return;
         }
 
@@ -153,6 +167,8 @@ $("#my_start").click(() => {
         );
 
         Quagga.start();
+
+        cameraRunning = true;
 
     });
 
@@ -166,6 +182,7 @@ Quagga.onDetected(result => {
 
     // すでに読み取っていたら無視
     if (detected) {
+
         return;
     }
 
@@ -183,7 +200,13 @@ Quagga.onDetected(result => {
 
 
     // カメラ停止
-    Quagga.stop();
+    if (cameraRunning) {
+
+        Quagga.stop();
+
+        cameraRunning = false;
+
+    }
 
 
     // 商品検索
@@ -198,14 +221,17 @@ Quagga.onDetected(result => {
 Quagga.onProcessed(result => {
 
     if (result == null) {
+
         return;
     }
 
     if (typeof result !== "object") {
+
         return;
     }
 
     if (result.boxes === undefined) {
+
         return;
     }
 
@@ -219,10 +245,13 @@ Quagga.onProcessed(result => {
 
     // Canvasクリア
     ctx.clearRect(
+
         0,
         0,
+
         parseInt(canvas.width),
         parseInt(canvas.height)
+
     );
 
 
@@ -255,8 +284,16 @@ $("#my_stop").click(() => {
 
     console.log("Stop!!");
 
-    // カメラ停止
-    Quagga.stop();
+
+    // カメラが起動中の場合だけ停止
+    if (cameraRunning) {
+
+        Quagga.stop();
+
+        cameraRunning = false;
+
+    }
+
 
     // 再度読み取り可能にする
     detected = false;
@@ -301,10 +338,28 @@ $("#barcode_search").click(() => {
 
 
     // ==============================
+    // カメラが起動中なら停止
+    // ==============================
+    if (cameraRunning) {
+
+        console.log(
+            "テキスト検索のためカメラを停止します"
+        );
+
+        Quagga.stop();
+
+        cameraRunning = false;
+
+    }
+
+
+    // バーコード検出状態をリセット
+    detected = false;
+
+
+    // ==============================
     // 商品検索
     // ==============================
-    // ここではQuagga.stop()を呼ばない
-    // カメラを使用した後でも検索できるようにする
     searchProduct(barcode);
 
 });

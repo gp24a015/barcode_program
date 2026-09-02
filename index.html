@@ -1,324 +1,157 @@
-console.log("main.js!!");
+<!DOCTYPE html>
+<html lang="ja">
 
-$(document).ready(() => {
-    console.log("Ready!!");
-});
+<head>
 
-let detected = false;
+    <meta charset="UTF-8">
 
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
 
-// ==============================
-// 商品検索
-// ==============================
-function searchProduct(barcode) {
+    <link
+        rel="shortcut icon"
+        href="./images/favicon.ico"
+    >
 
-    console.log("商品検索:", barcode);
+    <title>バーコード商品検索</title>
 
-    // JANコードを表示
-    $("#my_result").text(barcode);
+    <link
+        rel="stylesheet"
+        href="./style.css"
+    >
 
-    // Python APIへJANコードを送信
-    fetch("/api/search", {
+</head>
 
-        method: "POST",
 
-        headers: {
-            "Content-Type": "application/json"
-        },
+<body>
 
-        body: JSON.stringify({
-            barcode: barcode
-        })
+    <div id="my_container">
 
-    })
-    .then(response => {
+        <div id="my_inner">
 
-        console.log("APIステータス:", response.status);
+            <!-- ============================== -->
+            <!-- タイトル -->
+            <!-- ============================== -->
+            <div>
+                バーコード商品検索
+            </div>
 
-        return response.json();
 
-    })
-    .then(data => {
+            <!-- ============================== -->
+            <!-- カメラ操作 -->
+            <!-- ============================== -->
+            <div>
 
-        console.log("APIからの返答:", data);
+                <button id="my_start">
+                    Start
+                </button>
 
-        // ==============================
-        // 商品名
-        // ==============================
-        if (data.product_name) {
+                <button id="my_stop">
+                    Stop
+                </button>
 
-            $("#product_name").text(
-                data.product_name
-            );
+            </div>
 
-        } else {
 
-            $("#product_name").text(
-                "商品が見つかりません"
-            );
-        }
+            <!-- ============================== -->
+            <!-- カメラ -->
+            <!-- ============================== -->
+            <div id="my_quagga"></div>
 
 
-        // ==============================
-        // バーコード画像
-        // ==============================
-        if (data.barcode_image) {
+            <!-- ============================== -->
+            <!-- JANコード手入力 -->
+            <!-- ============================== -->
+            <div>
 
-            $("#my_barcode").html(
-                `<img src="${data.barcode_image}" alt="バーコード画像">`
-            );
+                <input
+                    type="text"
+                    id="barcode_input"
+                    placeholder="JANコードを入力"
+                    maxlength="13"
+                    inputmode="numeric"
+                >
 
-            // 商品検索後はカメラを非表示
-            $("#my_quagga").css(
-                "display",
-                "none"
-            );
+                <button id="barcode_search">
+                    商品検索
+                </button>
 
-        } else {
+            </div>
 
-            $("#my_barcode").html(
-                "<div>バーコード画像を生成できませんでした</div>"
-            );
-        }
 
-    })
-    .catch(error => {
+            <!-- ============================== -->
+            <!-- 読み取ったJANコード -->
+            <!-- ============================== -->
+            <div>
 
-        console.error("APIエラー:", error);
+                バーコード：
 
-        $("#product_name").text(
-            "商品検索でエラーが発生しました"
-        );
+                <span id="my_result">
+                    ***
+                </span>
 
-    });
-}
+            </div>
 
 
-// ==============================
-// Start
-// ==============================
-$("#my_start").click(() => {
+            <!-- ============================== -->
+            <!-- バーコード画像 -->
+            <!-- ============================== -->
+            <div id="my_barcode">
 
-    console.log("Start!!");
+                <div>
+                    ***
+                </div>
 
-    // カメラ画面を再表示
-    $("#my_quagga").css(
-        "display",
-        "block"
-    );
+            </div>
 
-    // 新しく読み取りを開始
-    detected = false;
 
+            <!-- ============================== -->
+            <!-- 商品名 -->
+            <!-- ============================== -->
+            <div>
 
-    // ==============================
-    // Quagga初期化
-    // ==============================
-    Quagga.init({
+                商品名：
 
-        inputStream: {
+                <span id="product_name">
+                    ***
+                </span>
 
-            name: "Live",
+            </div>
 
-            type: "LiveStream",
+        </div>
 
-            target: document.getElementById(
-                "my_quagga"
-            )
+    </div>
 
-        },
 
-        decoder: {
+    <!-- ============================== -->
+    <!-- jQuery -->
+    <!-- ============================== -->
 
-            readers: [
-                "ean_reader"
-            ]
+    <script src="//code.jquery.com/jquery-3.6.1.min.js"></script>
 
-        }
 
-    }, err => {
+    <!-- ============================== -->
+    <!-- Quagga2 -->
+    <!-- ============================== -->
 
-        if (err) {
+    <script src="//unpkg.com/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
 
-            console.error(
-                "Quagga初期化エラー:",
-                err
-            );
 
-            return;
-        }
+    <!-- ============================== -->
+    <!-- jquery-barcode -->
+    <!-- ============================== -->
 
-        console.log(
-            "Initialization finished!!"
-        );
+    <script src="//cdn.jsdelivr.net/gh/mtaketani113/jquery-barcode@master/jquery-barcode.js"></script>
 
-        Quagga.start();
 
-    });
+    <!-- ============================== -->
+    <!-- 自作JavaScript -->
+    <!-- ============================== -->
 
-});
+    <script src="./main.js"></script>
 
+</body>
 
-// ==============================
-// バーコード検出
-// ==============================
-Quagga.onDetected(result => {
-
-    // すでに読み取っていたら無視
-    if (detected) {
-        return;
-    }
-
-    detected = true;
-
-
-    // JANコード取得
-    const barcode =
-        result.codeResult.code;
-
-    console.log(
-        "バーコード:",
-        barcode
-    );
-
-
-    // カメラ停止
-    Quagga.stop();
-
-
-    // 商品検索
-    searchProduct(barcode);
-
-});
-
-
-// ==============================
-// Quagga処理状況
-// ==============================
-Quagga.onProcessed(result => {
-
-    if (result == null) {
-        return;
-    }
-
-    if (typeof result !== "object") {
-        return;
-    }
-
-    if (result.boxes === undefined) {
-        return;
-    }
-
-
-    const ctx =
-        Quagga.canvas.ctx.overlay;
-
-    const canvas =
-        Quagga.canvas.dom.overlay;
-
-
-    // Canvasクリア
-    ctx.clearRect(
-        0,
-        0,
-        parseInt(canvas.width),
-        parseInt(canvas.height)
-    );
-
-
-    // 検出範囲を描画
-    Quagga.ImageDebug.drawPath(
-
-        result.box,
-
-        {
-            x: 0,
-            y: 1
-        },
-
-        ctx,
-
-        {
-            color: "blue",
-            lineWidth: 5
-        }
-
-    );
-
-});
-
-
-// ==============================
-// Stop
-// ==============================
-$("#my_stop").click(() => {
-
-    console.log("Stop!!");
-
-    // カメラ停止
-    Quagga.stop();
-
-    // 再度読み取り可能にする
-    detected = false;
-
-});
-
-
-// ==============================
-// テキスト入力による商品検索
-// ==============================
-$("#barcode_search").click(() => {
-
-    console.log(
-        "商品検索ボタンが押されました"
-    );
-
-
-    // 入力されたJANコード
-    const barcode =
-        $("#barcode_input")
-        .val()
-        .trim();
-
-
-    console.log(
-        "入力されたバーコード:",
-        barcode
-    );
-
-
-    // ==============================
-    // JANコード13桁チェック
-    // ==============================
-    if (!/^\d{13}$/.test(barcode)) {
-
-        alert(
-            "13桁のJANコードを入力してください"
-        );
-
-        return;
-    }
-
-
-    // ==============================
-    // 商品検索
-    // ==============================
-    // ここではQuagga.stop()を呼ばない
-    // カメラを使用した後でも検索できるようにする
-    searchProduct(barcode);
-
-});
-
-
-// ==============================
-// Enterキーでも検索
-// ==============================
-$("#barcode_input").keypress(event => {
-
-    if (event.key === "Enter") {
-
-        $("#barcode_search").click();
-
-    }
-
-});
+</html>
