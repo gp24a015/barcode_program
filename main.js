@@ -8,6 +8,81 @@ let detected = false;
 
 
 // ==============================
+// 商品検索
+// ==============================
+function searchProduct(barcode) {
+
+    console.log("商品検索:", barcode);
+
+    // JANコードを表示
+    $("#my_result").text(barcode);
+
+    // Python APIへJANコードを送信
+    fetch("/api/search", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            barcode: barcode
+        })
+
+    })
+
+    .then(response => {
+        return response.json();
+    })
+
+    .then(data => {
+
+        console.log("APIからの返答:", data);
+
+        // 商品名
+        if (data.product_name) {
+
+            $("#product_name").text(
+                data.product_name
+            );
+
+        } else {
+
+            $("#product_name").text(
+                "商品が見つかりません"
+            );
+        }
+
+        // バーコード画像
+        if (data.barcode_image) {
+
+            $("#my_barcode").html(
+                `<img src="${data.barcode_image}" alt="バーコード画像">`
+            );
+
+        } else {
+
+            $("#my_barcode").html(
+                "<div>バーコード画像を生成できませんでした</div>"
+            );
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error("APIエラー:", error);
+
+        $("#product_name").text(
+            "商品検索でエラーが発生しました"
+        );
+
+    });
+}
+
+
+// ==============================
 // Start
 // ==============================
 $("#my_start").click(() => {
@@ -21,6 +96,7 @@ $("#my_start").click(() => {
     detected = false;
 
     Quagga.init({
+
         inputStream: {
             name: "Live",
             type: "LiveStream",
@@ -32,13 +108,16 @@ $("#my_start").click(() => {
         }
 
     }, err => {
+
         if (err) {
             console.log(err);
             return;
         }
 
         console.log("Initialization finished!!");
+
         Quagga.start();
+
     });
 });
 
@@ -57,73 +136,11 @@ Quagga.onDetected(result => {
 
     console.log("バーコード:", barcode);
 
-    // JANコードを表示
-    $("#my_result").text(barcode);
-
     // カメラを停止
     Quagga.stop();
 
-
-    // ==============================
-    // Python APIへJANコードを送信
-    // ==============================
-
-    fetch("/api/search", {
-
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            barcode: barcode
-        })
-
-    })
-
-    .then(response => {
-        return response.json();
-    })
-
-    .then(data => {
-
-        console.log("APIからの返答:", data);
-
-        if (data.product_name) {
-            $("#product_name").text(
-                data.product_name
-            );
-
-        } else {
-            $("#product_name").text(
-                "商品が見つかりません"
-            );
-        }
-
-        if (data.barcode_image) {
-            $("#my_barcode").html(
-                `<img src="${data.barcode_image}" alt="バーコード画像">`
-            );
-
-            // カメラを完全に非表示
-            $("#my_quagga").css("display", "none");
-        }
-        else{
-            $("#my_barcode").html(
-                 "<div>バーコード画像を生成できませんでした</div>" 
-            );
-        }
-
-    })
-
-    .catch(error => {
-
-        console.error("APIエラー:", error);
-
-        $("#product_name").text(
-            "商品検索でエラーが発生しました"
-        );
-
-    });
+    // 商品検索
+    searchProduct(barcode);
 
 });
 
@@ -179,5 +196,31 @@ $("#my_stop").click(() => {
     Quagga.stop();
 
     detected = false;
+
+});
+
+
+// ==============================
+// テキスト入力による商品検索
+// ==============================
+$("#barcode_search").click(() => {
+
+    const barcode = $("#barcode_input").val().trim();
+
+    console.log("入力されたバーコード:", barcode);
+
+    // JANコード13桁チェック
+    if (!/^\d{13}$/.test(barcode)) {
+
+        alert("13桁のJANコードを入力してください");
+
+        return;
+    }
+
+    // カメラを停止
+    Quagga.stop();
+
+    // 商品検索
+    searchProduct(barcode);
 
 });

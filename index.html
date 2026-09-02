@@ -9,7 +9,6 @@
 
     <title>バーコード商品検索</title>
 
-    <!-- CSS -->
     <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -21,6 +20,7 @@
 
             <div>バーコード商品検索</div>
 
+            <!-- カメラ操作 -->
             <div>
                 <button id="my_start">Start</button>
                 <button id="my_stop">Stop</button>
@@ -28,6 +28,21 @@
 
             <!-- カメラ -->
             <div id="my_quagga"></div>
+
+            <!-- テキスト入力 -->
+            <div>
+                <input
+                    type="text"
+                    id="barcode_input"
+                    placeholder="JANコードを入力"
+                    maxlength="13"
+                    inputmode="numeric"
+                >
+
+                <button id="barcode_search">
+                    商品検索
+                </button>
+            </div>
 
             <!-- 読み取ったJANコード -->
             <div>
@@ -50,7 +65,6 @@
 
     </div>
 
-    <!-- JavaScript -->
     <script src="//code.jquery.com/jquery-3.6.1.min.js"></script>
 
     <script src="//unpkg.com/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
