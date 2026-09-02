@@ -1,3 +1,4 @@
+'javascript'
 console.log("main.js!!");
 
 $(document).ready(() => {
@@ -90,11 +91,33 @@ $(document).ready(() => {
             return;
         }
 
-        detected = true;
-
         const barcode = result.codeResult.code;
 
-        console.log("バーコード:", barcode);
+        console.log("読み取ったバーコード:", barcode);
+
+
+        // =========================
+        // 490から始まるバーコードだけ許可
+        // =========================
+        if (!barcode.startsWith("490")) {
+
+            console.log(
+                "490以外のバーコードなので無視します:",
+                barcode
+            );
+
+            return;
+        }
+
+
+        // 490から始まる場合だけ読み取り完了
+        detected = true;
+
+        console.log(
+            "490から始まるバーコードを検出:",
+            barcode
+        );
+
 
         // カメラ停止
         if (cameraRunning) {
@@ -104,8 +127,10 @@ $(document).ready(() => {
             cameraRunning = false;
         }
 
+
         // 商品検索
         searchProduct(barcode);
+
     });
 
 
@@ -120,6 +145,7 @@ $(document).ready(() => {
 
         console.log("入力されたバーコード:", barcode);
 
+
         // 13桁チェック
         if (!/^\d{13}$/.test(barcode)) {
 
@@ -128,10 +154,13 @@ $(document).ready(() => {
             return;
         }
 
+
         // カメラが起動中なら停止
         if (cameraRunning) {
 
-            console.log("テキスト検索のためカメラを停止します");
+            console.log(
+                "テキスト検索のためカメラを停止します"
+            );
 
             Quagga.stop();
 
@@ -140,8 +169,10 @@ $(document).ready(() => {
 
         detected = false;
 
+
         // 商品検索
         searchProduct(barcode);
+
     });
 
 
@@ -154,6 +185,7 @@ $(document).ready(() => {
 
             $("#barcode_search").click();
         }
+
     });
 
 
@@ -164,8 +196,10 @@ $(document).ready(() => {
 
         console.log("商品検索:", barcode);
 
+
         // JANコード表示
         $("#my_result").text(barcode);
+
 
         fetch("/api/search", {
 
@@ -183,14 +217,21 @@ $(document).ready(() => {
 
         .then((response) => {
 
-            console.log("APIステータス:", response.status);
+            console.log(
+                "APIステータス:",
+                response.status
+            );
 
             return response.json();
+
         })
 
         .then((data) => {
 
-            console.log("APIからの返答:", data);
+            console.log(
+                "APIからの返答:",
+                data
+            );
 
 
             // =========================
@@ -198,11 +239,15 @@ $(document).ready(() => {
             // =========================
             if (data.product_name) {
 
-                $("#product_name").text(data.product_name);
+                $("#product_name").text(
+                    data.product_name
+                );
 
             } else {
 
-                $("#product_name").text("商品が見つかりません");
+                $("#product_name").text(
+                    "商品が見つかりません"
+                );
             }
 
 
@@ -224,19 +269,28 @@ $(document).ready(() => {
 
 
             // カメラを隠す
-            // ※ display:none にしない
-            $("#my_quagga").css("visibility", "hidden");
+            // display:noneにはしない
+            $("#my_quagga").css(
+                "visibility",
+                "hidden"
+            );
 
         })
 
         .catch((error) => {
 
-            console.error("APIエラー:", error);
+            console.error(
+                "APIエラー:",
+                error
+            );
 
             $("#product_name").text(
                 "商品検索でエラーが発生しました"
             );
+
         });
+
     }
 
 });
+```
