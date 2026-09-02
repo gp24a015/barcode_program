@@ -1,4 +1,3 @@
-'javascript'
 console.log("main.js!!");
 
 $(document).ready(() => {
@@ -293,4 +292,3 @@ $(document).ready(() => {
     }
 
 });
-```
