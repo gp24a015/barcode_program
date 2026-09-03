@@ -238,16 +238,37 @@ $(document).ready(() => {
             // =========================
             if (data.product_name) {
 
-                $("#product_name").text(
-                    data.product_name
-                );
+    $("#product_name").text(
+        data.product_name
+    );
 
-            } else {
+    // =========================
+    // 商品名をlocalStorageに保存
+    // =========================
 
-                $("#product_name").text(
-                    "商品が見つかりません"
-                );
-            }
+    let products = JSON.parse(
+        localStorage.getItem("products") || "[]"
+    );
+
+    products.push({
+        name: data.product_name,
+        barcode: barcode,
+        date: new Date().toLocaleString("ja-JP")
+    });
+
+    localStorage.setItem(
+        "products",
+        JSON.stringify(products)
+    );
+
+    console.log("商品を保存しました:", data.product_name);
+
+    } else {
+
+        $("#product_name").text(
+            "商品が見つかりません"
+        );
+    }
 
 
             // =========================
