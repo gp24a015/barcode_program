@@ -2,55 +2,47 @@ import pandas as pd
 import joblib
 
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
+from sklearn.metrics.pairwise import cosine_similarity
 
 
-# ==============================
+# =========================
 # 学習データ読み込み
-# ==============================
+# =========================
 
 data = pd.read_csv("training_data.csv")
 
-X = data["word"]
-y = data["label"]
+before = data["before"].astype(str)
+after = data["after"].astype(str)
 
 
-# ==============================
-# 文字列を数値化
-# ==============================
+# =========================
+# 商品名をベクトル化
+# =========================
 
 vectorizer = TfidfVectorizer(
     analyzer="char",
     ngram_range=(1, 3)
 )
 
-X_vectorized = vectorizer.fit_transform(X)
+X = vectorizer.fit_transform(before)
 
 
-# ==============================
-# 機械学習
-# ==============================
-
-model = LogisticRegression(
-    max_iter=1000
-)
-
-model.fit(X_vectorized, y)
-
-
-# ==============================
-# モデルとVectorizerを保存
-# ==============================
+# =========================
+# モデル保存
+# =========================
 
 model_data = {
     "vectorizer": vectorizer,
-    "model": model
+    "X": X,
+    "after": after.tolist()
 }
 
 joblib.dump(
     model_data,
-    "product_classifier.pkl"
+    "../api/product_name_model.pkl"
 )
 
+
 print("学習完了")
-print("保存先: product_classifier.pkl")
+print("モデルを保存しました")
+print("../api/product_name_model.pkl")
