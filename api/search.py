@@ -16,10 +16,14 @@ import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 
 
+# Yahoo Shopping API
 APPID = os.environ["APPID"]
 
 
-# 学習した商品名加工モデルの読み込み
+# ========================================
+# 商品名加工モデルの読み込み
+# ========================================
+
 MODEL_PATH = os.path.join(
     os.path.dirname(__file__),
     "product_name_model.pkl"
@@ -32,6 +36,10 @@ X = model_data["X"]
 after_names = model_data["after"]
 
 
+# ========================================
+# Yahoo Shopping APIから商品名を取得
+# ========================================
+
 def jancode_to_name(code):
 
     url = (
@@ -40,22 +48,37 @@ def jancode_to_name(code):
     )
 
     try:
+
         with urlopen(url) as resp:
             res = json.load(resp)
 
     except URLError as err:
-        print(err, file=sys.stderr)
+
+        print(
+            "Yahoo APIエラー:",
+            err,
+            file=sys.stderr
+        )
+
         return None
 
+
     if "hits" in res and res["hits"]:
+
         return res["hits"][0]["name"]
+
 
     return None
 
 
+# ========================================
+# バーコード画像を生成
+# ========================================
+
 def generate_barcode(code):
 
     try:
+
         ean = barcode.get(
             "ean13",
             code[:12],
@@ -66,14 +89,19 @@ def generate_barcode(code):
 
         ean.write(
             buffer,
-            options={"write_text": True}
+            options={
+                "write_text": True
+            }
         )
 
         image_base64 = base64.b64encode(
             buffer.getvalue()
         ).decode("utf-8")
 
-        return "data:image/png;base64," + image_base64
+        return (
+            "data:image/png;base64,"
+            + image_base64
+        )
 
     except Exception as err:
 
@@ -86,12 +114,22 @@ def generate_barcode(code):
         return None
 
 
+# ========================================
+# 商品名を機械学習で加工
+# ========================================
+
 def predict_product_name(product_name):
 
-    # Yahooから取得した商品名をベクトル化
+    print()
+    print("========== 商品名加工 ==========")
+    print("元の商品名:", product_name)
+
+
+    # Yahooの商品名をベクトル化
     query_vector = vectorizer.transform(
         [product_name]
     )
+
 
     # 学習データとの類似度を計算
     similarities = cosine_similarity(
@@ -99,41 +137,82 @@ def predict_product_name(product_name):
         X
     )[0]
 
-    # 最も類似しているデータの番号
+
+    # 最も似ているデータを取得
     best_index = similarities.argmax()
 
-    # 一番高い類似度
     best_score = similarities[best_index]
 
-    print("元の商品名:", product_name)
+
     print(
-        "予測商品名:",
+        "最も似ている学習データ:",
         after_names[best_index]
     )
+
     print(
         "類似度:",
         best_score
     )
 
-    # 類似度が低すぎる場合
-    if best_score < 0.2:
 
-        print("類似する商品が見つかりませんでした")
+    # ====================================
+    # 類似度が十分高い場合
+    # ====================================
 
-        return product_name
+    if best_score >= 0.5:
 
-    return after_names[best_index]
+        print("→ 類似度が高いため学習結果を採用")
 
+        result = after_names[best_index]
+
+    else:
+
+        # =================================
+        # 類似度が低い場合
+        # =================================
+
+        print(
+            "→ 類似度が低いため元の商品名を使用"
+        )
+
+        result = product_name
+
+
+    print("最終的な商品名:", result)
+    print("================================")
+    print()
+
+
+    return result
+
+
+# ========================================
+# HTTPリクエスト
+# ========================================
 
 class handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
 
+        # --------------------------------
+        # リクエストを読み込む
+        # --------------------------------
+
         content_length = int(
-            self.headers.get("Content-Length", 0)
+            self.headers.get(
+                "Content-Length",
+                0
+            )
         )
 
-        body = self.rfile.read(content_length)
+        body = self.rfile.read(
+            content_length
+        )
+
+
+        # --------------------------------
+        # JSONを解析
+        # --------------------------------
 
         try:
 
@@ -163,7 +242,14 @@ class handler(BaseHTTPRequestHandler):
             return
 
 
-        barcode_code = data.get("barcode")
+        # --------------------------------
+        # JANコード取得
+        # --------------------------------
+
+        barcode_code = data.get(
+            "barcode"
+        )
+
 
         if not barcode_code:
 
@@ -189,24 +275,38 @@ class handler(BaseHTTPRequestHandler):
             return
 
 
-        # Yahoo Shopping APIから商品名を取得
+        # --------------------------------
+        # Yahoo API
+        # --------------------------------
+
         product_name = jancode_to_name(
             barcode_code
         )
 
-        # バーコード画像を生成
+
+        # --------------------------------
+        # バーコード画像
+        # --------------------------------
+
         barcode_image = generate_barcode(
             barcode_code
         )
 
 
+        # --------------------------------
+        # 商品名加工
+        # --------------------------------
+
         if product_name is not None:
 
-            # 機械学習で商品名を加工
             product_name = predict_product_name(
                 product_name
             )
 
+
+        # --------------------------------
+        # 商品が見つからない
+        # --------------------------------
 
         if product_name is None:
 
@@ -232,6 +332,10 @@ class handler(BaseHTTPRequestHandler):
             return
 
 
+        # --------------------------------
+        # レスポンス
+        # --------------------------------
+
         self.send_response(200)
 
         self.send_header(
@@ -244,12 +348,14 @@ class handler(BaseHTTPRequestHandler):
 
         response = {
 
-            "barcode": barcode_code,
+            "barcode":
+                barcode_code,
 
-            "product_name": product_name,
+            "product_name":
+                product_name,
 
-            "barcode_image": barcode_image
-
+            "barcode_image":
+                barcode_image
         }
 
 
