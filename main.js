@@ -96,8 +96,8 @@ $(document).ready(() => {
 
 
         // 490または450から始まるバーコードだけ許可
-        if (!barcode.startsWith("490") && !barcode.startsWith("450")) {
-            console.log("490・450以外のバーコードなので無視します:", barcode);
+        if (!barcode.startsWith("49") && !barcode.startsWith("45")) {
+            console.log("49・45以外のバーコードなので無視します:", barcode);
             return;
         }
 
@@ -106,7 +106,7 @@ $(document).ready(() => {
         detected = true;
 
         console.log(
-            "490・450から始まるバーコードを検出:",
+            "49・45から始まるバーコードを検出:",
             barcode
         );
 
