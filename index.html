@@ -1,155 +1,113 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
-
-    <link
-        rel="shortcut icon"
-        href="./images/favicon.ico"
-    >
-
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f6f3">
     <title>バーコード商品検索</title>
-
-    <link
-        rel="stylesheet"
-        href="./style.css"
-    >
-
+    <link rel="shortcut icon" href="./images/favicon.ico">
+    <link rel="stylesheet" href="./style.css">
 </head>
-
-
-<body>
-
+<body class="search-page">
     <div id="my_container">
-
-        <div id="my_inner">
-
-            <!-- ============================== -->
-            <!-- タイトル -->
-            <!-- ============================== -->
-            <div>
-                バーコード商品検索
-            </div>
-
-
-            <!-- ============================== -->
-            <!-- カメラ操作 -->
-            <!-- ============================== -->
-            <div>
-
-                <button id="my_start">Start</button>
-                <button id="my_stop">Stop</button>
-                <a href="./products.html">
-                    <button type="button">商品一覧</button>
+        <main id="my_inner">
+            <header class="app-header">
+                <div class="brand-mark" aria-hidden="true">B</div>
+                <div class="brand-copy">
+                    <p class="eyebrow">PRODUCT FINDER</p>
+                    <h1>バーコード商品検索</h1>
+                </div>
+                <a class="history-link" href="./products.html">
+                    <span aria-hidden="true">▤</span>
+                    商品一覧
                 </a>
+            </header>
 
-            </div>
-
-
-            <!-- ============================== -->
-            <!-- カメラ -->
-            <!-- ============================== -->
-            <div id="my_quagga"></div>
-
-
-            <!-- ============================== -->
-            <!-- JANコード手入力 -->
-            <!-- ============================== -->
-            <div>
-
-                <input
-                    type="text"
-                    id="barcode_input"
-                    placeholder="JANコードを入力"
-                    maxlength="13"
-                    inputmode="numeric"
-                >
-
-                <button id="barcode_search">
-                    商品検索
-                </button>
-
-            </div>
-
-
-            <!-- ============================== -->
-            <!-- 読み取ったJANコード -->
-            <!-- ============================== -->
-            <div>
-
-                バーコード：
-
-                <span id="my_result">
-                    ***
-                </span>
-
-            </div>
-
-
-            <!-- ============================== -->
-            <!-- バーコード画像 -->
-            <!-- ============================== -->
-            <div id="my_barcode">
-
-                <div>
-                    ***
+            <section class="search-card" aria-labelledby="scan-heading">
+                <div class="section-heading">
+                    <div>
+                        <p class="eyebrow">SCAN OR ENTER</p>
+                        <h2 id="scan-heading">商品を検索する</h2>
+                    </div>
+                    <span class="step-badge">JANコード</span>
                 </div>
 
-            </div>
+                <div class="camera-panel">
+                    <div id="my_quagga" aria-label="バーコード読み取りカメラ">
+                        <div class="camera-guide" aria-hidden="true">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <p class="camera-hint">バーコードを枠内に合わせてください</p>
+                    </div>
+                </div>
 
+                <div class="camera-actions">
+                    <button class="button button-primary" id="my_start" type="button">
+                        <span aria-hidden="true">▣</span>
+                        カメラを起動
+                    </button>
+                    <button class="button button-secondary" id="my_stop" type="button">
+                        停止
+                    </button>
+                </div>
 
-            <!-- ============================== -->
-            <!-- 商品名 -->
-            <!-- ============================== -->
-            <div>
+                <div class="divider"><span>またはJANコードを入力</span></div>
 
-                商品名：
+                <div class="manual-search">
+                    <label for="barcode_input">JANコード（13桁）</label>
+                    <div class="input-row">
+                        <input
+                            type="text"
+                            id="barcode_input"
+                            placeholder="例：4901234567894"
+                            maxlength="13"
+                            inputmode="numeric"
+                            autocomplete="off"
+                            aria-describedby="input-help"
+                        >
+                        <button class="button button-search" id="barcode_search" type="button">
+                            検索
+                            <span aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                    <p id="input-help" class="input-help">バーコードを読み取れない場合は、数字を入力してください。</p>
+                </div>
+            </section>
 
-                <span id="product_name">
-                    ***
-                </span>
+            <section class="result-card" aria-labelledby="result-heading" aria-live="polite">
+                <div class="result-heading">
+                    <div>
+                        <p class="eyebrow">SEARCH RESULT</p>
+                        <h2 id="result-heading">検索結果</h2>
+                    </div>
+                    <span class="result-dot" aria-hidden="true"></span>
+                </div>
 
-            </div>
+                <div class="result-details">
+                    <div class="result-row">
+                        <span class="result-label">JANコード</span>
+                        <span id="my_result" class="result-value barcode-value">まだ読み取っていません</span>
+                    </div>
+                    <div class="result-row product-row">
+                        <span class="result-label">商品名</span>
+                        <span id="product_name" class="result-value product-value">商品を検索すると、ここに表示されます</span>
+                    </div>
+                    <div id="my_barcode" class="barcode-image" aria-label="JANコードのバーコード画像">
+                        <div></div>
+                    </div>
+                </div>
+            </section>
 
-        </div>
-
+            <footer class="app-footer">バーコードを読み取るか、JANコードを入力して検索してください。</footer>
+        </main>
     </div>
 
-
-    <!-- ============================== -->
-    <!-- jQuery -->
-    <!-- ============================== -->
-
-    <script src="//code.jquery.com/jquery-3.6.1.min.js"></script>
-
-
-    <!-- ============================== -->
-    <!-- Quagga2 -->
-    <!-- ============================== -->
-
-    <script src="//unpkg.com/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
-
-
-    <!-- ============================== -->
-    <!-- jquery-barcode -->
-    <!-- ============================== -->
-
-    <script src="//cdn.jsdelivr.net/gh/mtaketani113/jquery-barcode@master/jquery-barcode.js"></script>
-
-
-    <!-- ============================== -->
-    <!-- 自作JavaScript -->
-    <!-- ============================== -->
-
+    <script src="https://code.jquery.com/jquery-3.6.1.min.js"></script>
+    <script src="https://unpkg.com/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/mtaketani113/jquery-barcode@master/jquery-barcode.js"></script>
     <script src="./main.js"></script>
-
 </body>
-
 </html>

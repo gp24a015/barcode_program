@@ -9,6 +9,25 @@ $(document).ready(() => {
         localStorage.getItem("products") || "[]"
     );
 
+    const consolidatedProducts = [];
+    const productIndexes = new Map();
+
+    products.forEach((product) => {
+        const existingIndex = productIndexes.get(product.barcode);
+
+        if (existingIndex === undefined) {
+            productIndexes.set(product.barcode, consolidatedProducts.length);
+            consolidatedProducts.push(product);
+        } else {
+            consolidatedProducts[existingIndex] = product;
+        }
+    });
+
+    if (consolidatedProducts.length !== products.length) {
+        products = consolidatedProducts;
+        localStorage.setItem("products", JSON.stringify(products));
+    }
+
     const productList = $("#product_list");
 
 
