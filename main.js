@@ -95,25 +95,18 @@ $(document).ready(() => {
         console.log("読み取ったバーコード:", barcode);
 
 
-        // =========================
-        // 490から始まるバーコードだけ許可
-        // =========================
-        if (!barcode.startsWith("490")) {
-
-            console.log(
-                "490以外のバーコードなので無視します:",
-                barcode
-            );
-
+        // 490または450から始まるバーコードだけ許可
+        if (!barcode.startsWith("490") && !barcode.startsWith("450")) {
+            console.log("490・450以外のバーコードなので無視します:", barcode);
             return;
         }
 
 
-        // 490から始まる場合だけ読み取り完了
+        // 490または450から始まる場合だけ読み取り完了
         detected = true;
 
         console.log(
-            "490から始まるバーコードを検出:",
+            "490・450から始まるバーコードを検出:",
             barcode
         );
 
