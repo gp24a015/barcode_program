@@ -1,6 +1,7 @@
 import os
 import json
 import sys
+import re
 
 from urllib.request import urlopen
 from urllib.error import URLError
@@ -113,6 +114,108 @@ def generate_barcode(code):
 
         return None
 
+# ========================================
+# 未登録商品の商品名を加工
+# ========================================
+
+def normalize_product_name(product_name):
+
+    result = product_name
+
+    # --------------------------------
+    # 容量を削除
+    # 例：
+    # 60g
+    # 500ml
+    # 1kg
+    # --------------------------------
+
+    result = re.sub(
+        r'\d+(?:\.\d+)?\s*(?:g|kg|mg|ml|L|l)',
+        '',
+        result,
+        flags=re.IGNORECASE
+    )
+
+
+    # --------------------------------
+    # 個数・枚数・袋数などを削除
+    # 例：
+    # 12枚
+    # 10個
+    # 6袋
+    # 3箱
+    # --------------------------------
+
+    result = re.sub(
+        r'\d+\s*(?:枚|個|袋|本|箱|缶|瓶|パック|セット|ケース)',
+        '',
+        result
+    )
+
+
+    # --------------------------------
+    # ×12、x12などを削除
+    # --------------------------------
+
+    result = re.sub(
+        r'[×xX]\s*\d+',
+        '',
+        result
+    )
+
+
+    # --------------------------------
+    # 「12個入り」などを削除
+    # --------------------------------
+
+    result = re.sub(
+        r'\d+\s*(?:個|枚|袋|箱|本|パック|セット)?入り',
+        '',
+        result
+    )
+
+
+    # --------------------------------
+    # 括弧内の情報を削除
+    # --------------------------------
+
+    result = re.sub(
+        r'\([^)]*\)',
+        '',
+        result
+    )
+
+    result = re.sub(
+        r'（[^）]*）',
+        '',
+        result
+    )
+
+
+    # --------------------------------
+    # 「/」「／」などを空白にする
+    # --------------------------------
+
+    result = re.sub(
+        r'[/／]+',
+        ' ',
+        result
+    )
+
+
+    # --------------------------------
+    # 余分な空白を整理
+    # --------------------------------
+
+    result = re.sub(
+        r'\s+',
+        ' ',
+        result
+    )
+
+
+    return result.strip()
 
 # ========================================
 # 商品名を機械学習で加工
@@ -124,64 +227,39 @@ def predict_product_name(product_name):
     print("========== 商品名加工 ==========")
     print("元の商品名:", product_name)
 
-
-    # Yahooの商品名をベクトル化
     query_vector = vectorizer.transform(
         [product_name]
     )
 
-
-    # 学習データとの類似度を計算
     similarities = cosine_similarity(
         query_vector,
         X
     )[0]
 
-
-    # 最も似ているデータを取得
     best_index = similarities.argmax()
-
     best_score = similarities[best_index]
 
-
-    print(
-        "最も似ている学習データ:",
-        after_names[best_index]
-    )
-
-    print(
-        "類似度:",
-        best_score
-    )
-
-
-    # ====================================
-    # 類似度が十分高い場合
-    # ====================================
+    print("類似度:", best_score)
 
     if best_score >= 0.5:
 
-        print("→ 類似度が高いため学習結果を採用")
-
         result = after_names[best_index]
+
+        print("→ 学習データを使用")
+        print("→ 加工後:", result)
 
     else:
 
-        # =================================
-        # 類似度が低い場合
-        # =================================
-
-        print(
-            "→ 類似度が低いため元の商品名を使用"
+        result = normalize_product_name(
+            product_name
         )
 
-        result = product_name
+        print("→ 未登録商品")
+        print("→ ルールによる商品名加工")
+        print("→ 加工後:", result)
 
-
-    print("最終的な商品名:", result)
     print("================================")
     print()
-
 
     return result
 
