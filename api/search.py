@@ -217,6 +217,27 @@ def normalize_product_name(product_name):
 
     return result.strip()
 
+
+def remove_promotional_phrases(product_name):
+
+    result = re.sub(
+        r'\s*[\(（\[［]?\s*(?:お?配り(?:向け|用)|景品(?:向け|用)|'
+        r'ギフト(?:向け|用)|プレゼント(?:向け|用)|販促用|'
+        r'ノベルティ用|ばらまき(?:向け|用)|ばら撒き(?:向け|用))'
+        r'\s*[\)）\]］]?\s*',
+        ' ',
+        product_name
+    )
+
+    result = re.sub(
+        r'\s+',
+        ' ',
+        result
+    )
+
+    return result.strip()
+
+
 # ========================================
 # 商品名を機械学習で加工
 # ========================================
@@ -256,7 +277,9 @@ def predict_product_name(product_name):
 
         print("→ 未登録商品")
         print("→ ルールによる商品名加工")
-        print("→ 加工後:", result)
+
+    result = remove_promotional_phrases(result)
+    print("→ 加工後:", result)
 
     print("================================")
     print()
