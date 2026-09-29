@@ -369,6 +369,28 @@ input {
     font-weight: 700;
 }
 
+.product-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin: 12px 0;
+    color: #176b4c;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.product-link:hover {
+    color: #10583e;
+    text-decoration: underline;
+}
+
+.product-link:focus-visible {
+    border-radius: 3px;
+    outline: 3px solid #8ce0ad;
+    outline-offset: 3px;
+}
+
 .barcode-image {
     display: flex;
     min-height: 70px;

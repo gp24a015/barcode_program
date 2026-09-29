@@ -188,6 +188,8 @@ $(document).ready(() => {
 
         console.log("商品検索:", barcode);
 
+        $("#product_link").prop("hidden", true).removeAttr("href");
+        $("#product_name").text("商品を検索しています…");
 
         // JANコード表示
         $("#my_result").text(barcode);
@@ -231,42 +233,53 @@ $(document).ready(() => {
             // =========================
             if (data.product_name) {
 
-    $("#product_name").text(
-        data.product_name
-    );
+                $("#product_name").text(
+                    data.product_name
+                );
 
-    // =========================
-    // 商品名をlocalStorageに保存
-    // =========================
+                if (data.product_url) {
+                    try {
+                        const productUrl = new URL(data.product_url);
 
-    let products = JSON.parse(
-        localStorage.getItem("products") || "[]"
-    );
+                        if (productUrl.protocol === "https:") {
+                            $("#product_link")
+                                .attr("href", productUrl.href)
+                                .prop("hidden", false);
+                        }
+                    } catch (error) {
+                        console.error("商品ページURLが不正です:", error);
+                    }
+                }
 
-    // 同じJANコードの商品は履歴に重複して追加せず、最新の情報に更新する
-    products = products.filter(
-        (product) => product.barcode !== barcode
-    );
+                // 商品名をlocalStorageに保存
+                let products = JSON.parse(
+                    localStorage.getItem("products") || "[]"
+                );
 
-    products.push({
-        name: data.product_name,
-        barcode: barcode,
-        date: new Date().toLocaleString("ja-JP")
-    });
+                // 同じJANコードの商品は履歴に重複して追加せず、最新の情報に更新する
+                products = products.filter(
+                    (product) => product.barcode !== barcode
+                );
 
-    localStorage.setItem(
-        "products",
-        JSON.stringify(products)
-    );
+                products.push({
+                    name: data.product_name,
+                    barcode: barcode,
+                    date: new Date().toLocaleString("ja-JP")
+                });
 
-    console.log("商品を保存しました:", data.product_name);
+                localStorage.setItem(
+                    "products",
+                    JSON.stringify(products)
+                );
 
-    } else {
+                console.log("商品を保存しました:", data.product_name);
 
-        $("#product_name").text(
-            "商品が見つかりません"
-        );
-    }
+            } else {
+
+                $("#product_name").text(
+                    "商品が見つかりません"
+                );
+            }
 
 
             // =========================
@@ -305,6 +318,8 @@ $(document).ready(() => {
             $("#product_name").text(
                 "商品検索でエラーが発生しました"
             );
+
+            $("#product_link").prop("hidden", true).removeAttr("href");
 
         });
 

@@ -41,7 +41,7 @@ after_names = model_data["after"]
 # Yahoo Shopping APIから商品名を取得
 # ========================================
 
-def jancode_to_name(code):
+def jancode_to_product(code):
 
     url = (
         "https://shopping.yahooapis.jp/ShoppingWebService/V3/itemSearch"
@@ -66,7 +66,12 @@ def jancode_to_name(code):
 
     if "hits" in res and res["hits"]:
 
-        return res["hits"][0]["name"]
+        item = res["hits"][0]
+
+        return {
+            "name": item["name"],
+            "url": item.get("url")
+        }
 
 
     return None
@@ -380,9 +385,10 @@ class handler(BaseHTTPRequestHandler):
         # Yahoo API
         # --------------------------------
 
-        product_name = jancode_to_name(
+        product = jancode_to_product(
             barcode_code
         )
+        product_name = product["name"] if product else None
 
 
         # --------------------------------
@@ -454,6 +460,9 @@ class handler(BaseHTTPRequestHandler):
 
             "product_name":
                 product_name,
+
+            "product_url":
+                product["url"],
 
             "barcode_image":
                 barcode_image
